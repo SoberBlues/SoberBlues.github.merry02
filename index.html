@@ -50,7 +50,7 @@
   }
 
   .header-title { text-align: center; font-size: 26px; font-weight: 800; color: #1e293b; margin: 5px 0 5px; letter-spacing: 1px; }
-  .header-subtitle { text-align: center; color: #64748b; font-size: 14px; margin-bottom: 20px; font-weight: 500; }
+  .header-subtitle { text-align: center; color: #e5e6e9; font-size: 14px; margin-bottom: 20px; font-weight: 500; }
   
   /* 搜尋框卡片 */
   .search-card {
@@ -224,7 +224,7 @@
   <div class="search-card">
     <h3 style="margin:0 0 12px 0; font-size: 16px;">🔍 賓客座位查詢</h3>
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="請輸入姓名、或桌號(如:05、主桌、B)" onkeypress="if(event.key==='Enter') searchGuest()" enterkeyhint="search">
+      <input type="text" id="searchInput" placeholder="請輸入姓名、或桌號(如:05、主桌)" onkeypress="if(event.key==='Enter') searchGuest()" enterkeyhint="search">
       <button onclick="searchGuest()">查詢</button>
     </div>
     <div id="resultContainer" style="margin-top: 15px;"></div>
@@ -245,7 +245,7 @@
     <div class="seating-wrapper">
       <div class="seating" id="seatingLayout"></div>
     </div>
-    <div style="text-align: center; color: #94a3b8; font-size: 11px; margin-top: 5px;">左右滑動查看全区 ↔️</div>
+    <div style="text-align: center; color: #94a3b8; font-size: 11px; margin-top: 5px;">左右滑動查看全區 ↔️</div>
     
     <div class="legend-box">
       <div class="legend-item"><div class="legend-dot" style="background:#ff6b81;"></div>主桌</div>
@@ -308,24 +308,19 @@ function searchGuest() {
     let qName = q.name;
     let qTable = q.table.toUpperCase();
 
-    // 1. 判斷是否為純數字查詢（如 1 或 01）
+    // 判斷是否為純數字查詢（涵蓋 1 到 09 等所有純數字情況）
     let isNumericQuery = /^\d+$/.test(query);
 
     if (isNumericQuery) {
+      // 將查詢與資料庫桌號轉為數值後嚴格比對，完美解決 1 與 01 互通且不誤觸 10、11 等問題
       let queryNum = parseInt(query, 10);
       let tableNum = parseInt(qTable, 10);
       return !isNaN(tableNum) && tableNum === queryNum;
     } else {
-      // 2. 姓名模糊比對
+      // 姓名模糊比對與特殊桌號（如主桌、貴賓A）精確比對
       let isNameMatch = qName.toUpperCase().includes(upperQuery);
-      
-      // 3. 桌號精確比對（如完整輸入 "貴賓B"）
       let isTableMatch = (qTable === upperQuery);
-
-      // 4. 單獨輸入英文簡寫（如輸入 "B" 自動對應到包含該字母的桌號，如 "貴賓B"）
-      let isAbbrMatch = qTable.includes(upperQuery) && (upperQuery.length === 1 || upperQuery.startsWith('VIP'));
-
-      return isNameMatch || isTableMatch || isAbbrMatch;
+      return isNameMatch || isTableMatch;
     }
   });
 
