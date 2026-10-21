@@ -33,7 +33,6 @@
     overflow: hidden;
   }
 
-  /* 加上一層半透明白紗，確保背景圖上的文字清晰易讀 */
   .header-card::before {
     content: "";
     position: absolute;
@@ -60,21 +59,8 @@
     margin-bottom: 0;
     flex-wrap: wrap;
   }
-  .info-tag {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 13px;
-    color: #475569;
-    font-weight: 500;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
 
-  /* 搜尋框卡片（維持原本適中、舒適的大小與純白背景） */
+  /* 搜尋框卡片 */
   .search-card {
     background: #ffffff;
     border-radius: 24px;
@@ -224,13 +210,6 @@
     text-align: center;
     margin-bottom: 15px;
   }
-  .map-image-container img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  }
 
   footer {
     text-align: center; font-size: 12px; color: #94a3b8; margin: 30px 0 10px;
@@ -247,39 +226,27 @@
 <body>
 
 <div class="container">
-  <!-- 上方標題與資訊區塊：獨立成寬版卡片，並獨自套用 bg.jpg 背景 -->
   <div class="header-card">
     <div class="header-title">駿葳 & 泯霏</div>
     <div class="header-title">婚宴座位查詢系統</div>
     <div class="header-subtitle">歡迎蒞臨！請輸入您的姓名、或桌號</div>
-
-    <div class="info-tags">
-      <div>
-
-      
-      </div>
-    </div>
   </div>
 
-  <!-- 下方：查詢系統獨立區塊（維持原本大小與純白背景） -->
   <div class="search-card">
     <h3 style="margin:0 0 12px 0; font-size: 16px;">🔍 賓客座位查詢</h3>
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="請輸入姓名、或桌號(如:05、主桌)" onkeypress="if(event.key==='Enter') searchGuest()" enterkeyhint="search">
+      <input type="text" id="searchInput" placeholder="請輸入姓名、或桌號(如:1、主桌、A)" onkeypress="if(event.key==='Enter') searchGuest()" enterkeyhint="search">
       <button onclick="searchGuest()">查詢</button>
     </div>
     <div id="resultContainer" style="margin-top: 15px;"></div>
   </div>
 
-  <!-- 下方：宴會廳平面圖獨立區塊 -->
   <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
       <h3 style="margin:0; font-size: 16px; display: flex; align-items: center; gap: 6px;">🗺️ 宴會廳座位平面圖</h3>
     </div>
 
-    <div class="map-image-container" id="mapImageSection">
-      <!-- <img src="seat_map.png" alt="宴會廳平面圖"> -->
-    </div>
+    <div class="map-image-container" id="mapImageSection"></div>
 
     <div class="stage">
       <span class="stage-dot"></span>
@@ -340,21 +307,28 @@ async function loadQuestData() {
 }
 
 function searchGuest() {
-  let query = document.getElementById('searchInput').value.trim().toUpperCase();
+  let query = document.getElementById('searchInput').value.trim();
   if (!query) return;
   document.getElementById('searchInput').blur();
   
-  const allowedSingleDigits = ['1', '2', '4', '5', '6', '7', '8', '9'];
-  let tableQuery = query;
+  let upperQuery = query.toUpperCase();
+  let tableQuery = upperQuery;
   
-  if (allowedSingleDigits.includes(query)) {
+  // 處理 1 ~ 9 的單日數字自動補零對應 (01 ~ 09)
+  if (/^\d{1}$/.test(query)) {
     tableQuery = '0' + query;
+  } 
+  // 處理單獨輸入 "A" 或 "B" 時自動對應 "貴賓A" 或 "貴賓B"
+  else if (upperQuery === 'A') {
+    tableQuery = '貴賓A';
+  } else if (upperQuery === 'B') {
+    tableQuery = '貴賓B';
   }
 
   const results = quests.filter(q => {
     const qTable = q.table.toUpperCase();
-    const isNameMatch = q.name.toUpperCase().includes(query);
-    const isTableMatch = qTable === tableQuery || qTable === query;
+    const isNameMatch = q.name.toUpperCase().includes(upperQuery);
+    const isTableMatch = qTable === tableQuery || qTable === upperQuery;
     return isNameMatch || isTableMatch;
   });
 
@@ -362,7 +336,7 @@ function searchGuest() {
   if (results.length === 0) {
     container.innerHTML = `<div style="text-align:center; color:#64748b; padding: 10px;">查無 "${query}" 的相關座位資訊</div>`;
     highlightTables([]);
-  } else if (results.length === 1 && !query.includes("主桌") && !query.includes("貴賓") && !(/^\d+$/.test(query))) {
+  } else if (results.length === 1 && !upperQuery.includes("主桌") && !upperQuery.includes("貴賓") && !upperQuery.includes("A") && !upperQuery.includes("B") && !(/^\d+$/.test(query))) {
     const q = results[0];
     const badgeClass = q.table.includes('主桌') ? 'main' : (q.table.includes('貴賓') ? 'vip' : 'normal');
     container.innerHTML = `
