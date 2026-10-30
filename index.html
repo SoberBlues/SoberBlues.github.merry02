@@ -49,8 +49,10 @@
     z-index: 2;
   }
 
-  .header-title { text-align: center; font-size: 26px; font-weight: 800; color: #1e293b; margin: 5px 0 5px; letter-spacing: 1px; }
-  .header-subtitle { text-align: center; color: #e5e6e9; font-size: 14px; margin-bottom: 20px; font-weight: 500; }
+  /* 這裡將標題字型縮小（原本是 26px，可自行調整數值） */
+  .header-title { text-align: center; font-size: 20px; font-weight: 800; color: #1e293b; margin: 4px 0 4px; letter-spacing: 1px; }
+  /* 這裡將副標題/歡迎詞字型縮小（原本是 14px，可自行調整數值） */
+  .header-subtitle { text-align: center; color: #e5e6e9; font-size: 12px; margin-bottom: 10px; font-weight: 500; }
   
   /* 搜尋框卡片 */
   .search-card {
@@ -206,7 +208,8 @@
     .table { width: 38px; height: 38px; font-size: 11px; }
     .table.main { width: 50px; height: 50px; }
     .table.vip { width: 45px; height: 45px; }
-    .header-title { font-size: 22px; }
+    /* 手機版標題跟著縮小 */
+    .header-title { font-size: 18px; }
   }
 </style>
 </head>
@@ -308,16 +311,13 @@ function searchGuest() {
     let qName = q.name;
     let qTable = q.table.toUpperCase();
 
-    // 判斷是否為純數字查詢（涵蓋 1 到 09 等所有純數字情況）
     let isNumericQuery = /^\d+$/.test(query);
 
     if (isNumericQuery) {
-      // 將查詢與資料庫桌號轉為數值後嚴格比對，完美解決 1 與 01 互通且不誤觸 10、11 等問題
       let queryNum = parseInt(query, 10);
       let tableNum = parseInt(qTable, 10);
       return !isNaN(tableNum) && tableNum === queryNum;
     } else {
-      // 姓名模糊比對與特殊桌號（如主桌、貴賓A）精確比對
       let isNameMatch = qName.toUpperCase().includes(upperQuery);
       let isTableMatch = (qTable === upperQuery);
       return isNameMatch || isTableMatch;
@@ -369,7 +369,6 @@ function highlightTables(targetTables) {
         div.className = 'table' + typeClass;
         div.textContent = tableId;
         
-        // 確保 1~09 的高亮對應完全正確且不干擾其他桌號
         let isMatched = targetTables.some(t => {
           if (/^\d+$/.test(t) && /^\d+$/.test(tableId)) {
             return parseInt(t, 10) === parseInt(tableId, 10);
